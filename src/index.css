@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-print,
+  .receipt-print * {
+    visibility: visible;
+  }
+  .receipt-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    padding: 20mm 15mm;
+    margin: 0;
+    background: white;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+  .receipt-print h2 {
+    font-size: 26px;
+  }
+  .receipt-print .text-sm {
+    font-size: 14px;
+  }
+  .receipt-print .text-xs {
+    font-size: 12px;
+  }
+  .receipt-print .text-lg {
+    font-size: 18px;
+  }
+  .receipt-print .text-xl {
+    font-size: 22px;
+  }
+  .receipt-item {
+    page-break-inside: avoid;
+  }
+  .receipt-footer {
+    page-break-inside: avoid;
+  }
+
+  /* ── Thermal printer mode (80mm) ──
+   * Activate by adding class to <body>:
+   *   document.body.classList.add('receipt-thermal')
+   */
+  /*
+  body.receipt-thermal .receipt-print {
+    max-width: 80mm;
+    height: auto;
+    padding: 10mm;
+    font-size: 10px;
+  }
+  body.receipt-thermal .receipt-print h2 { font-size: 18px; }
+  body.receipt-thermal .receipt-print .text-sm { font-size: 12px; }
+  body.receipt-thermal .receipt-print .text-xs { font-size: 10px; }
+  body.receipt-thermal .receipt-print .text-lg { font-size: 14px; }
+  body.receipt-thermal .receipt-print .text-xl { font-size: 16px; }
+  */
+}
