@@ -6,6 +6,7 @@ const badgeColors = {
   "Kerabu Meggi": "bg-red-100 text-red-700",
   "Minuman Panas": "bg-rose-100 text-rose-700",
   "Minuman Sejuk": "bg-cyan-100 text-cyan-700",
+  "Minuman Special": "bg-teal-100 text-teal-700",
 }
 
 const CartItem = ({ item, onIncrease, onDecrease, onRemove }) => {

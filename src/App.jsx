@@ -16,6 +16,7 @@ function App() {
   const [showReceipt, setShowReceipt] = useState(false)
   const [activeCategory, setActiveCategory] = useState("all")
   const [showCart, setShowCart] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
   useEffect(() => {
     localStorage.setItem("selera-cart", JSON.stringify(cart))
@@ -63,6 +64,20 @@ function App() {
     return cart.reduce((sum, item) => sum + item.quantity, 0)
   }, [cart])
 
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return null
+    const matches = (item) =>
+      item.name.toLowerCase().includes(q) || item.category.toLowerCase().includes(q)
+    return categories
+      .map((cat) => ({
+        ...cat,
+        items: cat.items.filter(matches),
+        addOns: (cat.addOns || []).filter(matches),
+      }))
+      .filter((cat) => cat.items.length > 0 || cat.addOns.length > 0)
+  }, [searchQuery])
+
   const handleCheckout = () => {
     if (cart.length === 0) return
     setShowCart(false)
@@ -91,9 +106,38 @@ function App() {
           </div>
         </div>
 
+        <div className="relative mb-4">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Cari menu..."
+            className="w-full pl-10 pr-9 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+        </div>
+
         <div className="flex gap-2 mb-4 flex-wrap">
           <button
-            onClick={() => setActiveCategory("all")}
+            onClick={() => {
+              setActiveCategory("all")
+              setSearchQuery("")
+            }}
             className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
               activeCategory === "all"
                 ? "bg-blue-600 text-white shadow-md"
@@ -105,7 +149,10 @@ function App() {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => {
+                setActiveCategory(cat.id)
+                setSearchQuery("")
+              }}
               className={`px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                 activeCategory === cat.id
                   ? "bg-blue-600 text-white shadow-md"
@@ -117,7 +164,38 @@ function App() {
           ))}
         </div>
 
-        {activeCategory === "all" ? (
+        {searchResults ? (
+          searchResults.length > 0 ? (
+            searchResults.map((cat) => (
+              <div key={cat.id} className="mb-6">
+                <h2 className="text-lg font-bold text-gray-700 mb-3">{cat.name}</h2>
+                {cat.items.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {cat.items.map((item) => (
+                      <MenuCard key={item.id} item={item} onAdd={addToCart} />
+                    ))}
+                  </div>
+                )}
+                {cat.addOns.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-semibold text-amber-600 mb-2 flex items-center gap-1">
+                      <span>➕</span> Add On
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {cat.addOns.map((item) => (
+                        <MenuCard key={item.id} item={item} onAdd={addToCart} isAddOn />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-16 text-gray-500">
+              Tiada menu dijumpai untuk "{searchQuery.trim()}"
+            </div>
+          )
+        ) : activeCategory === "all" ? (
           categories.map((cat) => (
             <div key={cat.id} className="mb-6">
               <h2 className="text-lg font-bold text-gray-700 mb-3">{cat.name}</h2>
