@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react"
 import categories from "./data/menu"
 import MenuCard from "./components/MenuCard"
 import Cart from "./components/Cart"
-import ReceiptModal from "./components/ReceiptModal"
+import ReceiptBayaran from "./components/ReceiptBayaran"
 
 function App() {
   const [cart, setCart] = useState(() => {
@@ -219,7 +219,7 @@ function App() {
       )}
 
       {showReceipt && (
-        <ReceiptModal
+        <ReceiptBayaran
           cart={cart}
           total={total}
           onClose={handleCloseReceipt}

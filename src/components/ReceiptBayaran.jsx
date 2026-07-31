@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 
 const badgeColors = {
   "Nasi Kerabu": "text-blue-700",
@@ -10,70 +10,108 @@ const badgeColors = {
   "Minuman Sejuk": "text-cyan-700",
 }
 
-const ReceiptModal = ({ cart, total, onClose }) => {
+const buildPdfFile = async (node) => {
+  const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+    import("html2canvas"),
+    import("jspdf"),
+  ])
+
+  const original = node
+  const clone = original.cloneNode(true)
+  const wrapper = document.createElement("div")
+  wrapper.style.cssText = "position:fixed;left:0;top:0;z-index:-1;background:white;width:520px;padding:0;"
+  wrapper.appendChild(clone)
+  document.body.appendChild(wrapper)
+
+  const canvas = await html2canvas(clone, {
+    scale: 1.5,
+    backgroundColor: "#ffffff",
+    logging: false,
+  })
+
+  document.body.removeChild(wrapper)
+
+  const pdf = new jsPDF({ unit: "mm", format: "a4" })
+  const margin = 10
+  const pageW = 210 - margin * 2
+  const pageH = 297 - margin * 2
+  const ratio = pageW / canvas.width
+  const totalH = canvas.height * ratio
+  const pages = Math.ceil(totalH / pageH)
+
+  for (let i = 0; i < pages; i++) {
+    if (i > 0) pdf.addPage()
+
+    const yOffsetPX = Math.round((i * pageH) / ratio)
+    const sliceHPX = Math.min(canvas.height - yOffsetPX, Math.round(pageH / ratio))
+
+    const temp = document.createElement("canvas")
+    temp.width = canvas.width
+    temp.height = sliceHPX
+    temp.getContext("2d").drawImage(canvas, 0, yOffsetPX, canvas.width, sliceHPX, 0, 0, canvas.width, sliceHPX)
+
+    pdf.addImage(temp.toDataURL("image/png"), "PNG", margin, margin, pageW, sliceHPX * ratio)
+  }
+
+  const pdfBlob = pdf.output("blob")
+  return new File([pdfBlob], "receipt-selera-pantai-timur.pdf", {
+    type: "application/pdf",
+  })
+}
+
+const ReceiptBayaran = ({ cart, total, onClose }) => {
   const [sharing, setSharing] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [shareFile, setShareFile] = useState(null)
   const receiptRef = useRef(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const file = await buildPdfFile(receiptRef.current)
+      if (!cancelled) {
+        setShareFile(file)
+        setReady(true)
+      }
+    })().catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleShare = async () => {
     setSharing(true)
     try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ])
+      const file = shareFile
 
-      const original = receiptRef.current
-      const clone = original.cloneNode(true)
-      const wrapper = document.createElement("div")
-      wrapper.style.cssText = "position:fixed;left:0;top:0;z-index:-1;background:white;width:520px;padding:0;"
-      wrapper.appendChild(clone)
-      document.body.appendChild(wrapper)
-
-      const canvas = await html2canvas(clone, {
-        scale: 1.5,
-        backgroundColor: "#ffffff",
-        logging: false,
-      })
-
-      document.body.removeChild(wrapper)
-
-      const pdf = new jsPDF({ unit: "mm", format: "a4" })
-      const margin = 10
-      const pageW = 210 - margin * 2
-      const pageH = 297 - margin * 2
-      const ratio = pageW / canvas.width
-      const totalH = canvas.height * ratio
-      const pages = Math.ceil(totalH / pageH)
-
-      for (let i = 0; i < pages; i++) {
-        if (i > 0) pdf.addPage()
-
-        const yOffsetPX = Math.round((i * pageH) / ratio)
-        const sliceHPX = Math.min(canvas.height - yOffsetPX, Math.round(pageH / ratio))
-
-        const temp = document.createElement("canvas")
-        temp.width = canvas.width
-        temp.height = sliceHPX
-        temp.getContext("2d").drawImage(canvas, 0, yOffsetPX, canvas.width, sliceHPX, 0, 0, canvas.width, sliceHPX)
-
-        pdf.addImage(temp.toDataURL("image/png"), "PNG", margin, margin, pageW, sliceHPX * ratio)
-      }
-
-      const pdfBlob = pdf.output("blob")
-      const file = new File([pdfBlob], "receipt-selera-pantai-timur.pdf", {
-        type: "application/pdf",
-      })
-
-      if (navigator.share) {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ files: [file], title: "Receipt - Selera Pantai Timur" })
           return
         } catch {
-          // File share not supported or user cancelled — fall through to open
+          return
         }
       }
-      const url = URL.createObjectURL(pdfBlob)
-      window.open(url, "_blank")
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "Receipt - Selera Pantai Timur",
+            text: `Resit Selera Pantai Timur - RM${total.toFixed(2)}`,
+            url: window.location.href,
+          })
+          return
+        } catch {
+          return
+        }
+      }
+      const url = URL.createObjectURL(file)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "receipt-selera-pantai-timur.pdf"
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
     } catch {
     } finally {
       setSharing(false)
@@ -147,10 +185,10 @@ const ReceiptModal = ({ cart, total, onClose }) => {
           <div className="flex gap-2 p-4 pt-0 print:hidden">
             <button
               onClick={handleShare}
-              disabled={sharing}
+              disabled={!ready || sharing}
               className="flex-[2] bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-3 px-4 rounded-xl text-sm transition-colors"
             >
-              {sharing ? "Processing..." : "Share PDF"}
+              {!ready ? "Preparing..." : sharing ? "Processing..." : "Share PDF"}
             </button>
             <button
               onClick={onClose}
@@ -165,4 +203,4 @@ const ReceiptModal = ({ cart, total, onClose }) => {
   )
 }
 
-export default ReceiptModal
+export default ReceiptBayaran
