@@ -8,7 +8,6 @@ const badgeColors = {
   "Kerabu Meggi": "text-red-700",
   "Minuman Panas": "text-rose-700",
   "Minuman Sejuk": "text-cyan-700",
-  "Minuman Special": "text-teal-700",
 }
 
 const ReceiptModal = ({ cart, total, onClose }) => {
