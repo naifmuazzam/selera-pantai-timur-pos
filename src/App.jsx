@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react"
+import { Plus } from "lucide-react"
 import categories from "./data/menu"
 import MenuCard from "./components/MenuCard"
 import Cart from "./components/Cart"
@@ -179,7 +180,7 @@ function App() {
                 {cat.addOns.length > 0 && (
                   <div className="mt-4">
                     <h3 className="text-sm font-semibold text-amber-600 mb-2 flex items-center gap-1">
-                      <span>➕</span> Add On
+                      <Plus className="h-4 w-4" /> Add On
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                       {cat.addOns.map((item) => (
@@ -207,7 +208,7 @@ function App() {
               {cat.addOns && cat.addOns.length > 0 && (
                 <div className="mt-4">
                   <h3 className="text-sm font-semibold text-amber-600 mb-2 flex items-center gap-1">
-                    <span>➕</span> Add On
+                    <Plus className="h-4 w-4" /> Add On
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                     {cat.addOns.map((item) => (
@@ -233,7 +234,7 @@ function App() {
                 {cat.addOns && cat.addOns.length > 0 && (
                   <div className="mt-6">
                     <h3 className="text-sm font-semibold text-amber-600 mb-2 flex items-center gap-1">
-                      <span>➕</span> Add On
+                      <Plus className="h-4 w-4" /> Add On
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                       {cat.addOns.map((item) => (

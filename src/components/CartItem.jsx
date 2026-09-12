@@ -9,14 +9,16 @@ const badgeColors = {
   "Minuman Special": "bg-teal-100 text-teal-700",
 }
 
+import ItemIcon from "./ItemIcon"
+
 const CartItem = ({ item, onIncrease, onDecrease, onRemove }) => {
   const subtotal = item.price * item.quantity
   const badgeColor = badgeColors[item.categoryBadge] || "bg-gray-100 text-gray-600"
 
   return (
     <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-b-0">
-      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center shrink-0 text-xl">
-        {item.emoji}
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 text-gray-500 flex items-center justify-center shrink-0">
+        <ItemIcon name={item.icon} className="w-6 h-6" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
