@@ -2,6 +2,10 @@
 
 A point-of-sale web app for Selera Pantai Timur™.
 
+## Live View
+
+Live at [https://selera-pantai-timur-pos.pages.dev/](https://selera-pantai-timur-pos.pages.dev/)
+
 ## Why
 
 My brother wanted a simple POS — tap a menu item, see the price,
